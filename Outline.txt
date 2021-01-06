@@ -1,0 +1,108 @@
+Program Start
+    > Initialize question bank
+    > Welcome Message
+        Main Menu
+            - Play Game
+                BOOKMARK: gameStart
+                > Set var playerName to ''
+                > Set var currentEarnings to 0
+                > Set var currentRound to 0
+                > Set var lifelineCallSmartFriendUsed to False
+                > Set var lifelineCallUnsureFriendUsed to False
+                > Set var lifelineCallArrogantFriendUsed to False     
+                > Set var lifelineFiftyFiftyUsed to False                                             
+                > Ask for playerName
+                > If player name is in high scores database:
+                    > Welcome player back and display his previous high score
+                    > Set var returningPlayer to True
+                > Else:
+                    > welcome new player' message
+                    > Set var returningPlayer to False
+                BOOKMARK: nextRound
+                > Increment var currentRound by 1
+                > If round <= 5:
+                    > get random easy question
+                    > set var roundDifficulty to 'easy'
+                > If round >5 and <=10:
+                    > get random average question
+                    > set var roundDifficulty to 'average'
+                > If round >10:
+                    > get random difficult question
+                    > set var roundDifficulty to 'difficult'
+                > Randomize choice-letter assignment
+                > Display currentRound, question content, remainingChoices, currentEarnings, and roundPrize for the round
+                > If currentRound is not 15:
+                    > set var lifelineEnabled to True
+                > Else:
+                    > set var lifelineEnabled to False
+                > If remainingLifelines != 0 and roundDifficulty = 'difficult':
+                    > display reminder message that lifelines cannot be used on the final question
+                > Player can choose one:
+                    - Answer the question
+                        BOOKMARK: answerQuestion
+                        > Ask for answer input
+                        > If roundDifficulty is 'average' or 'difficult':
+                            > Ask if final answer
+                                > If not:
+                                    > go to BOOKMARK answerQuestion
+                        > Check answer
+                        > If answer is correct:
+                            > some congratulatory message
+                            > Increase var currentEarnings by var roundPrize
+                            > If currentRound = 5:
+                                > congratulatory round 5 message
+                            > If currentRound = 10:
+                                > congratulatory round 10 message                           
+                            > go to BOOKMARK nextRound
+                        > If answer is wrong:
+                            > some sorry message
+                            BOOKMARK: endGame
+                            > If var currentRound > 5:
+                                > some 'congrats, you walk away with round 5 prize' message
+                                > set var currentEarnings to 20000
+                            > If var currentRound > 10:
+                                > some 'congrats, you walk away with round 10 prize' message
+                                > set var currentEarnings to 150000
+                            > Check high scores database for the 5th highest score
+                            > If currentEarnings > 5th highest score:
+                                > add player and score to high scores
+                                > you got into high scores message
+                                > Display updated high scores (Note: in cases of ties, all players with same scores should be in the high scores i.e. there can be more than 5 players in the high scores)
+                            > Ask if user wants to play again
+                            > If yes:
+                                > go to BOOKMARK gameStart
+                    - If var lifelineEnabled = True:
+                        - Use a lifeline
+                            > Display unused lifelines
+                                - If lifelineCallSmartFriendUsed == False and lifelineCallUnsureFriendUsed == False and lifelineCallArrogantFriendUsed == False:
+                                    - Call a friend
+                                        - If lifelineCallSmartFriendUsed == False:
+                                            - Call smart friend
+                                                > set var lifelineCallSmartFriendUsed == True
+                                                > humble message + 90% chance of correct answer
+                                                > go to BOOKMARK answerQuestion
+                                        - If lifelineCallUnsureFriendUsed == False:
+                                            - Call unsure friend
+                                                > set var lifelineCallUnsureFriendUsed == True                                            
+                                                > confused message + 50% chance of correct answer     
+                                                > go to BOOKMARK answerQuestion                                                                                      
+                                        - If lifelineCallArrogantFriendUsed == False:
+                                            - Call arrogant friend  
+                                                > set var lifelineCallArrogantFriendUsed == True                                            
+                                                > arrogant message + 20% chance of correct answer 
+                                                > go to BOOKMARK answerQuestion                                                                                                                                                                             
+                                - If lifelineFiftyFiftyUsed == False:
+                                    - Fifty-Fifty
+                                        > set var lifelineFiftyFiftyUsed == True
+                                        > Remove two random incorrect answers
+                                        > Display message: answers removed
+                                        > Display updated var remainingChoices
+                                        > go to BOOKMARK answerQuestion
+                    - Walk away with current earnings
+                        > some ending message
+                        > Go to BOOKMARK endGame
+            - View High Scores
+                > Print Data from High Scores Database
+                > Go back to Main Menu
+            - Quit Game
+                > Exit Program
