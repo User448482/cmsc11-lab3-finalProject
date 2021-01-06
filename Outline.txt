@@ -1,4 +1,5 @@
 Program Start
+    BOOKMARK: programStart
     > Initialize question bank
     > Welcome Message
         Main Menu
@@ -70,7 +71,7 @@ Program Start
                                 > Display updated high scores (Note: in cases of ties, all players with same scores should be in the high scores i.e. there can be more than 5 players in the high scores)
                             > Ask if user wants to play again
                             > If yes:
-                                > go to BOOKMARK gameStart
+                                > go to BOOKMARK programStart
                     - If var lifelineEnabled = True:
                         - Use a lifeline
                             > Display unused lifelines
