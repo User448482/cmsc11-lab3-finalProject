@@ -3,6 +3,28 @@ import sqlite3
 import sys
 import time
 
+# declaring global variables
+roundDifficulty = ''
+question = ''
+currentRound = 0 
+playerName = ''
+currentEarnings = 0
+lifelineCallSmartFriendUsed = False
+lifelineCallUnsureFriendUsed = False
+lifelineCallArrogantFriendUsed = False
+lifelineFiftyFiftyUsed = False
+questionBankEasyList = []
+questionBankAverageList = []
+questionBankDifficultList = []
+questionBankEasy = ()
+questionBankAverage = ()
+questionBankDifficult = ()
+choicesBank = {}
+db = ''
+cursor = ''
+lifelineEnabled = True
+lifelinesList = ()
+
 def animate(text,duration):
     for letter in text:
         print(letter, end='', flush=True)
@@ -18,6 +40,39 @@ def viewHighScores():
         animate(text,.5)
         print('')
     print('') 
+
+def roundPrize(round):
+    if round == 1:
+        prize = 1000
+    if round == 2:
+        prize = 3000
+    if round == 3:
+        prize = 5000
+    if round == 4:
+        prize = 10000
+    if round == 5:
+        prize = 20000
+    if round == 6:
+        prize = 35000
+    if round == 7:
+        prize = 50000
+    if round == 8:
+        prize = 70000
+    if round == 9:
+        prize = 100000
+    if round == 10:
+        prize = 150000
+    if round == 11:
+        prize = 250000
+    if round == 12:
+        prize = 400000
+    if round == 13:
+        prize = 600000
+    if round == 14:
+        prize = 1000000                                                        
+    if round == 15:
+        prize = 2000000 
+    return prize
 
 def playerCreation():
     while 1:
@@ -47,15 +102,77 @@ def playerCreation():
     if returningPlayer == False:
         text = '\nWelcome, ' + playerName + '! Goodluck!\n\n'
         animate(text,1)
+    nextRound()
+
+def nextRound():
+    global roundDifficulty, question, currentRound, lifelineEnabled   
+    while 1:
+        currentRound += 1
+        if currentRound <= 5:
+            roundDifficulty = 'easy'
+            question = questionBankEasyList[currentRound-1]
+            content = questionBankEasy[question]['content']
+        if currentRound > 5 and currentRound <= 10:
+            roundDifficulty = 'average'
+            question = questionBankAverageList[currentRound-6]
+            content = questionBankAverage[question]['content']            
+        if currentRound > 10:
+            roundDifficulty = 'difficult'
+            question = questionBankAverageList[currentRound-11]
+            content = questionBankDifficult[question]['content']            
+        remainingChoices = list(choicesBank[question])
+        random.shuffle(remainingChoices)
+        prize = roundPrize(currentRound)
+        if currentRound != 15:
+            lifelineEnabled = True
+        else:
+            lifelineEnabled = False
+        text = 'ROUND ' + str(currentRound) + '\n' + 'Current Earnings: ' + str(currentEarnings) + '\n' + 'Prize for this Round: ' + str(prize)
+        animate(text,1.5)
+        if lifelineEnabled == True:
+            text = '\nLifelines remaining: '
+            for element in range(len(lifelinesList)):
+                text += lifelinesList[element]
+                if element != len(lifelinesList)-1:
+                    text += ', '
+            if len(lifelinesList) == 0:
+                text += 'None'
+            animate(text,1)
+        text = '\n\nQuestion: ' + content
+        animate(text,1.5)
+        text = '\n\n(a) ' + remainingChoices[0] + '\n(b) ' + remainingChoices[1] + '\n(c) ' + remainingChoices[2] + '\n(d) ' + remainingChoices[3]
+        animate(text,1.5)
+        text = '\n\nActions:\n(1) Answer the question\n'
+        if currentRound != 15 and len(lifelinesList) != 0:
+            text += '(2) Use a lifeline\n(3) Walk away with current earnings\n\n'
+            actionTwo = 'lifeline'
+        else:
+            text += '(2) Walk away with current earnings\n\n'
+            actionTwo = 'quit'
+        animate(text,1)
+        if len(lifelinesList) != 0 and roundDifficulty == 'difficult':
+            text = '\n\nReminder: Lifelines cannot be used on the final question.\n'
+            animate(text,.5)
+        while 1:
+            text = 'What do you want to do? '
+            animate(text,.5) 
+            action = str(input())
+            if action == '1':
+                # unfinished, answer the question
+                break
+            elif action == '2' and actionTwo == 'lifeline':
+                # unfinished, use a lifeline
+                break
+            elif action == '3' or (action == '2' and actionTwo == 'quit'):
+                # unfinished, walk away with current earnings
+                break
+            else:
+                text = 'Invalid input. '
+                animate(text,.5)
+        break    
 
 def gameStart():
-    global playerName
-    global currentEarnings
-    global currentRound
-    global lifelineCallSmartFriendUsed
-    global lifelineCallUnsureFriendUsed
-    global lifelineCallArrogantFriendUsed
-    global lifelineFiftyFiftyUsed
+    global playerName, currentEarnings, currentRound, lifelineCallSmartFriendUsed, lifelineCallUnsureFriendUsed, lifelineCallArrogantFriendUsed, lifelineFiftyFiftyUsed
     playerName = ''
     currentEarnings = 0
     currentRound = 0
@@ -88,9 +205,7 @@ def mainMenu():
             time.sleep(.5)
 
 def prepareRandomQuestions():
-    global questionBankEasyList
-    global questionBankAverageList
-    global questionBankDifficultList
+    global questionBankEasyList, questionBankAverageList, questionBankDifficultList
     questionBankEasyList = list(questionBankEasy)
     questionBankAverageList = list(questionBankAverage)
     questionBankDifficultList = list(questionBankDifficult)
@@ -102,7 +217,6 @@ def programStart():
     prepareRandomQuestions()
     text = '\nWelcome to "Who Wants to be a Millionnaire"!!!\n\n'
     animate(text,1)
-    mainMenu()
 
 def initializeHighScoresDB():
     global db, cursor
@@ -192,10 +306,16 @@ def initializeQuestionBanks():
 
     }
 
+def initializeLifelines():
+    global lifelinesList
+    lifelinesList = ['Call a Friend (Smart)', 'Call an Friend (Unsure)', 'Call a Friend(Arrogant)', 'Fifty-fifty']
+
 while 1:
     initializeQuestionBanks()
     initializeHighScoresDB()
+    initializeLifelines()
     programStart()
+    mainMenu()
     break
 
 sys.exit()
