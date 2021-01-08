@@ -24,15 +24,37 @@ db = ''
 cursor = ''
 lifelineEnabled = True
 lifelinesList = ()
+data = []
+returningPlayer = False
+correctAnswer = ''
+remainingChoices = []
+prize = 0
 
 def animate(text,duration):
     for letter in text:
         print(letter, end='', flush=True)
         time.sleep(duration/len(text))
 
+def updateHighScores():
+    global cursor, db
+    data = cursor.execute('SELECT Player, Score FROM HighScores ORDER BY Score DESC').fetchall()
+    dataList = [list(elem) for elem in data]
+    # count distinct Scores if there are 2 or more records
+    if len(dataList) > 1:
+        counter = 1
+        for i in range(len(dataList)-1):
+            if dataList[i+1][1] != dataList[i][1]:
+                counter += 1
+            if counter > 5:
+                excess = len(dataList) - i - 1
+                for j in range(excess): # delete excess
+                    cursor.execute('DELETE from HighScores WHERE Player = (?)', (dataList[j+5][0],))
+                    db.commit()
+
 def viewHighScores():
-    selectTable = 'SELECT Player, Score FROM HighScores GROUP BY Player'
-    data = cursor.execute(selectTable).fetchall()
+    global cursor
+    updateHighScores()
+    data = cursor.execute('SELECT Player, Score FROM HighScores ORDER BY Score DESC').fetchall()
     text = '\nTop 5 Scores: \n'
     animate(text,.5)
     for i in range(len(data)):
@@ -75,6 +97,7 @@ def roundPrize(round):
     return prize
 
 def playerCreation():
+    global playerName, returningPlayer
     while 1:
         invalidName = False
         text = '\nWhat is your name? '
@@ -90,8 +113,7 @@ def playerCreation():
         if invalidName == False:
             playerName = name
             break
-    selectTable = 'SELECT Player, Score FROM HighScores GROUP BY Player'
-    data = cursor.execute(selectTable).fetchall()
+    data = cursor.execute('SELECT Player, Score FROM HighScores GROUP BY Player').fetchall()
     returningPlayer = False
     for i in range(len(data)):
         if playerName == data[i][0]:
@@ -104,8 +126,83 @@ def playerCreation():
         animate(text,1)
     nextRound()
 
+def quitGame():
+    cursor.close()
+    sys.exit()
+
+def endGame(manner):
+    global currentEarnings, currentRound, cursor, playerName, db, returningPlayer
+    if manner == 'quit':
+        text = 'You walk away with ' + str(currentEarnings) + '. Congratulations!'
+        animate(text,1)
+    if manner == 'mistake':
+        text = '\nYour answer is incorrect.'
+        if currentRound < 5:
+            currentEarnings = 0
+            text += '\nYou did not make it to the first safe haven (Round 5). You walk away with 0. Better luck next time!'
+        if currentRound >= 5 and currentRound < 10:
+            currentEarnings = 20000
+            text += '\nYou have made it past the first safe haven (Round 5). You walk away with 20,000. Congratulations!'
+        if currentRound >= 10:
+            currentEarnings = 150000
+            text += '\nYou have made it past the second safe haven (Round 10). You walk away with 150,000. Congratulations!'
+        animate(text,1)
+    selectTable = 'SELECT Player, Score FROM HighScores GROUP BY Score'
+    data = cursor.execute(selectTable).fetchall()
+    if len(data) != 0:
+        lowest = data[len(data)-1][1]
+    else:
+        lowest = 0
+    if currentEarnings < lowest:
+        text ='\n\nYou did not make it high scores. Score atleast ' + str(lowest) + ' to be included. Thanks for playing!'
+        animate(text,1)
+    if currentEarnings >= lowest:
+        cursor.execute('SELECT * FROM HighScores')
+        if returningPlayer == True:
+            cursor.execute('UPDATE HighScores SET Score = (?) WHERE Player = (?)', (currentEarnings, playerName) )
+            text = '\n\nYour high score has been updated! Congratulations!\n'
+        elif returningPlayer == False:
+            cursor.execute('INSERT INTO HighScores (Player, Score) VALUES (?,?)', (playerName, currentEarnings))
+            text ='\n\nYou have made it to high scores! Congratulations!\n'
+        db.commit()
+        animate(text,1)
+        viewHighScores()
+
+def answerAndCheck():
+    global correctAnswer, remainingChoices
+    while 1:
+        text = '\nWhat is the letter of your anwer? '
+        animate(text,1)
+        answer = input()
+        if answer == 'A' or answer == 'a':
+            answer = remainingChoices[0]
+            break
+        if answer == 'B' or answer == 'b':
+            answer = remainingChoices[1]
+            break            
+        if (answer == 'C' or answer == 'c') and len(remainingChoices) == 4:
+            answer = remainingChoices[2]
+            break            
+        if (answer == 'D' or answer == 'd') and len(remainingChoices) == 4:
+            answer = remainingChoices[3]
+            break            
+        else:
+            text = '\nInvalid input.'
+            animate(text,.5)
+    if roundDifficulty == 'easy':
+        correctAnswer = questionBankEasy[question]['answer']
+    if roundDifficulty == 'average':
+        correctAnswer = questionBankAverage[question]['answer']        
+    if roundDifficulty == 'difficult':
+        correctAnswer = questionBankDifficult[question]['answer']
+    if answer == correctAnswer:
+        text = '\nYour answer is correct. You won ' + str([prize]) + '. Congratulations!'
+    animate(text,1)        
+    if answer != correctAnswer:
+        endgame('mistake')
+
 def nextRound():
-    global roundDifficulty, question, currentRound, lifelineEnabled   
+    global roundDifficulty, question, currentRound, lifelineEnabled, currentEarnings, remainingChoices, prize   
     while 1:
         currentRound += 1
         if currentRound <= 5:
@@ -150,21 +247,24 @@ def nextRound():
             text += '(2) Walk away with current earnings\n\n'
             actionTwo = 'quit'
         animate(text,1)
-        if len(lifelinesList) != 0 and roundDifficulty == 'difficult':
+        if len(lifelinesList) != 0 and roundDifficulty == 'difficult' and currentRound != 15:
             text = '\n\nReminder: Lifelines cannot be used on the final question.\n'
-            animate(text,.5)
+        if len(lifelinesList) != 0 and currentRound == 15:
+            text = '\n\nNote: Lifelines cannot be used on the final question.\n'
+        animate(text,.5)
         while 1:
             text = 'What do you want to do? '
             animate(text,.5) 
             action = str(input())
             if action == '1':
                 # unfinished, answer the question
+                answerAndCheck()
                 break
             elif action == '2' and actionTwo == 'lifeline':
                 # unfinished, use a lifeline
                 break
             elif action == '3' or (action == '2' and actionTwo == 'quit'):
-                # unfinished, walk away with current earnings
+                endGame('quit')
                 break
             else:
                 text = 'Invalid input. '
@@ -196,10 +296,9 @@ def mainMenu():
             text = '\nExiting...\n\n'
             animate(text,1)
             time.sleep(.7)
-            sys.exit()            
+            quitGame()            
             break
         else:
-            print(answer) # debug
             text = '\nInvalid input.\n\n'
             animate(text,.5)
             time.sleep(.5)
@@ -318,4 +417,4 @@ while 1:
     mainMenu()
     break
 
-sys.exit()
+quitGame()
