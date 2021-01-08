@@ -146,7 +146,7 @@ def endGame(manner):
         if currentRound >= 10:
             currentEarnings = 150000
             text += '\nYou have made it past the second safe haven (Round 10). You walk away with 150,000. Congratulations!'
-        animate(text,1)
+        animate(text,2)
     selectTable = 'SELECT Player, Score FROM HighScores GROUP BY Score'
     data = cursor.execute(selectTable).fetchall()
     if len(data) != 0:
@@ -154,7 +154,7 @@ def endGame(manner):
     else:
         lowest = 0
     if currentEarnings < lowest:
-        text ='\n\nYou did not make it high scores. Score atleast ' + str(lowest) + ' to be included. Thanks for playing!'
+        text ='\n\nYou did not make it to high scores. Score atleast ' + str(lowest) + ' to be included. Thanks for playing!'
         animate(text,1)
     if currentEarnings >= lowest:
         cursor.execute('SELECT * FROM HighScores')
@@ -171,19 +171,19 @@ def endGame(manner):
 def answerAndCheck():
     global correctAnswer, remainingChoices
     while 1:
-        text = '\nWhat is the letter of your anwer? '
+        text = '\nWhat is the letter of your answer? '
         animate(text,1)
         answer = input()
         if answer == 'A' or answer == 'a':
             answer = remainingChoices[0]
             break
-        if answer == 'B' or answer == 'b':
+        elif answer == 'B' or answer == 'b':
             answer = remainingChoices[1]
             break            
-        if (answer == 'C' or answer == 'c') and len(remainingChoices) == 4:
+        elif (answer == 'C' or answer == 'c') and len(remainingChoices) == 4:
             answer = remainingChoices[2]
             break            
-        if (answer == 'D' or answer == 'd') and len(remainingChoices) == 4:
+        elif (answer == 'D' or answer == 'd') and len(remainingChoices) == 4:
             answer = remainingChoices[3]
             break            
         else:
@@ -197,9 +197,9 @@ def answerAndCheck():
         correctAnswer = questionBankDifficult[question]['answer']
     if answer == correctAnswer:
         text = '\nYour answer is correct. You won ' + str([prize]) + '. Congratulations!'
-    animate(text,1)        
+        animate(text,1)        
     if answer != correctAnswer:
-        endgame('mistake')
+        endGame('mistake')
 
 def nextRound():
     global roundDifficulty, question, currentRound, lifelineEnabled, currentEarnings, remainingChoices, prize   
@@ -249,9 +249,10 @@ def nextRound():
         animate(text,1)
         if len(lifelinesList) != 0 and roundDifficulty == 'difficult' and currentRound != 15:
             text = '\n\nReminder: Lifelines cannot be used on the final question.\n'
+            animate(text,.5)           
         if len(lifelinesList) != 0 and currentRound == 15:
             text = '\n\nNote: Lifelines cannot be used on the final question.\n'
-        animate(text,.5)
+            animate(text,.5)
         while 1:
             text = 'What do you want to do? '
             animate(text,.5) 
