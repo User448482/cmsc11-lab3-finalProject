@@ -41,13 +41,12 @@ roundPrize = 0
 
 # defining functions
 
-def reloadUI(): # debug
+def reloadUI():
     os.system('cls')
     if fiftyFiftyUsed == False:
         print(instantText,end='')
     else:
         print(newInstantText,end='')
-
 
 def wait(duration):
     time.sleep(duration)
@@ -223,7 +222,7 @@ def getRandomQuestion(roundDifficulty):
         return difficultQuestions[currentRound-11][0]
 
 def setContent():
-    global actionsList, choicesList, correctAnswer, gameOver, instantText, lifelinesEnabled, questionContent
+    global actionsList, choicesList, correctAnswer, fiftyFiftyUsed, gameOver, instantText, lifelinesEnabled, questionContent
     instantText = ''
     lifelinesEnabled = True
     fiftyFiftyUsed = False
@@ -250,6 +249,7 @@ def setContent():
     random.shuffle(choicesList)
 
 def updateHighScores():
+    global highScoresDB
     if returningPlayer == True:
         highScoresCursor.execute('UPDATE HighScores SET Score = (?) WHERE Player = (?)', (currentEarnings, playerName))
         highScoresDB.commit()
@@ -293,6 +293,12 @@ def checkIfHighScore():
         typeWrite(text,1)
         updateHighScores()
         wait(1)
+        text = '\n NEW High Scores:\n\n'
+        data = highScoresCursor.execute('SELECT Player, Score from HighScores ORDER BY Score DESC').fetchall()
+        for elem in data:
+            text += str(elem[0]) + ': ' + convertScore(str(elem[1])) + '\n'
+        typeWrite(text,2)
+        wait(.75)
     else:
         text = '\n\nYour score did not make it TOP 5. Better luck next time!\n'
         typeWrite(text,1)
@@ -320,16 +326,17 @@ def askAndCheckAnswer():
                 typeWrite(text,1)
                 while 1:
                     confirm = input()
-                    if confirm == 'y' or 'Y':
+                    if confirm == 'y' or confirm == 'Y':
                         finalAnswer = True
                         break
-                    elif confirm == 'n' or 'N':
+                    elif confirm == 'n' or confirm == 'N':
                         finalAnswer = False
                         break
                     else:
                         text = '\nInvalid input. (y/n) Is that your final answer? '
                         typeWrite(text,1)
-            else: finalAnswer = True
+            else:
+                finalAnswer = True
             if finalAnswer == False:
                 reloadUI()
                 text = '\nWhat is the letter of your answer? '
@@ -399,7 +406,6 @@ def useLifeline():
                         suggestion = wrongAnswersList[0]
                     else:
                         suggestion = wrongAnswersList[random.randint(0,len(wrongAnswersList)-1)]   
-                #reloadUI()                     
                 text = '\nCalling (smart) friend...\n'
                 typeWrite(text,1)
                 wait(1)
@@ -421,7 +427,6 @@ def useLifeline():
                         suggestion = wrongAnswersList[0]
                     else:
                         suggestion = wrongAnswersList[random.randint(0,len(wrongAnswersList)-1)]                        
-                #reloadUI()
                 text = '\nCalling (unsure) friend...\n'
                 typeWrite(text,1)
                 wait(1)
@@ -443,7 +448,6 @@ def useLifeline():
                         suggestion = wrongAnswersList[0]
                     else:
                         suggestion = wrongAnswersList[random.randint(0,len(wrongAnswersList)-1)]                        
-                #reloadUI()
                 text = '\nCalling (arrogant) friend...\n'
                 typeWrite(text,1)
                 wait(1)
@@ -649,7 +653,7 @@ def startProgram():
 startProgram()
 exitProgram()
 
-# list functions and what they do, arranged alphabetically
+# list of functions and what they do, arranged alphabetically
 
 # animateCaps(text,duration) = turn letters of text to caps over duration 
 # askAction() = asks user if he wants to answer, use lifeline, or quit. returns True if instantUI == True and False if False
@@ -682,5 +686,3 @@ exitProgram()
 # wait(duration) = waits duration seconds using time.sleep() 
 # walkAway() = walk away with current earnings
 
-# NOTES
-# do lifeline reminder
