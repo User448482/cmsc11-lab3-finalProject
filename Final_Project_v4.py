@@ -268,12 +268,12 @@ def updateHighScores():
                     for j in range(excess): # delete excess
                         highScoresCursor.execute('DELETE from HighScores WHERE Player = (?)',[j+5][0])
             highScoresDB.commit()
-        text = '\nNEW High Scores:\n\n'
-        data = highScoresCursor.execute('SELECT Player, Score FROM HighScores ORDER BY Score DESC').fetchall()
-        for elem in data:
-            text += str(elem[0]) + ': ' + convertScore(str(elem[1])) + '\n'
-        wait(1)
-        typeWrite(text,1)
+    text = '\nNEW High Scores:\n\n'
+    data = highScoresCursor.execute('SELECT Player, Score FROM HighScores ORDER BY Score DESC').fetchall()
+    for elem in data:
+        text += str(elem[0]) + ': ' + convertScore(str(elem[1])) + '\n'
+    wait(1)
+    typeWrite(text,1)
 
 def checkIfHighScore():
     highScoresList = highScoresCursor.execute('SELECT Player, Score from HighScores ORDER BY Score DESC').fetchall()
@@ -293,12 +293,6 @@ def checkIfHighScore():
         typeWrite(text,1)
         updateHighScores()
         wait(1)
-        text = '\n NEW High Scores:\n\n'
-        data = highScoresCursor.execute('SELECT Player, Score from HighScores ORDER BY Score DESC').fetchall()
-        for elem in data:
-            text += str(elem[0]) + ': ' + convertScore(str(elem[1])) + '\n'
-        typeWrite(text,2)
-        wait(.75)
     else:
         text = '\n\nYour score did not make it TOP 5. Better luck next time!\n'
         typeWrite(text,1)
@@ -633,6 +627,7 @@ def askPlayAgain():
         if answer == 'y' or answer == 'Y':
             return True
         elif answer == 'n' or answer == 'N':
+            print('',end='')
             return False
         else:
             text = '\nInvalid input. (y/n) Do you want to play again? '
