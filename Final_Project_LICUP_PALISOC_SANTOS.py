@@ -498,7 +498,7 @@ def askAction():
     while 1:
         if instantUI == True:
             return True
-        text = '\n'
+        text = '\nActions:\n'
         for i in range(len(actionsList)):
             text += '(' + str(i+1) + ') ' + actionsList[i]
             if i != len(actionsList)-1:
