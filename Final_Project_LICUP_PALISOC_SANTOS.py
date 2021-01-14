@@ -75,8 +75,10 @@ def convertScore(text):
         spaceCount = 0
     textList = list(text)
     if spaceCount >= 1:
-        for _ in range(spaceCount):
-            textList.insert((-3*spaceCount),',')
+        j = 0
+        for i in range(spaceCount):
+            textList.insert(((-3*(i+1))+j),',')
+            j -= 1
     newText = '$'
     for elem in textList:
         newText += elem
@@ -278,27 +280,39 @@ def updateHighScores():
     typeWrite(text,1)
 
 def checkIfHighScore():
-    highScoresList = highScoresCursor.execute('SELECT Player, Score from HighScores ORDER BY Score DESC').fetchall()
-    if len(highScoresList) > 1:
-        counter = 1
-        for i in range(len(highScoresList)-1):
-            if highScoresList[i+1][1] != highScoresList[i][1]:
-                counter += 1
-    else:
-        counter = 0
-    if counter < 5:
-        lowest = 0
-    else:
-        lowest = highScoresList[-1][1]
-    if currentEarnings >= lowest:
-        text = '\n\nYou have made it to TOP 5 scores! Congratulations!\n'
-        typeWrite(text,1)
-        updateHighScores()
-        wait(1)
-    else:
-        text = '\n\nYour score did not make it TOP 5. Better luck next time!\n'
-        typeWrite(text,1)
-        wait(1)
+    if returningPlayer == False:
+        highScoresList = highScoresCursor.execute('SELECT Player, Score from HighScores ORDER BY Score DESC').fetchall()
+        if len(highScoresList) > 1:
+            counter = 1
+            for i in range(len(highScoresList)-1):
+                if highScoresList[i+1][1] != highScoresList[i][1]:
+                    counter += 1
+        else:
+            counter = 0
+        if counter < 5:
+            lowest = 0
+        else:
+            lowest = highScoresList[-1][1]
+        if currentEarnings >= lowest:
+            text = '\n\nYou have made it to TOP 5 scores! Congratulations!\n'
+            typeWrite(text,1)
+            updateHighScores()
+            wait(1)
+        else:
+            text = '\n\nYour score did not make it TOP 5. Better luck next time!\n'
+            typeWrite(text,1)
+            wait(1)
+    if returningPlayer == True:
+        lastscore = highScoresCursor.execute('SELECT Score FROM HighScores WHERE Player = (?)', (playerName,)).fetchall()
+        if currentEarnings > lastscore[0][0]:
+            text = '\n\nYou have set a new record! Congratulations!\n'
+            typeWrite(text,1)
+            updateHighScores()
+            wait(1)
+        else:
+            text = '\n\nYou did not beat your old score! Better luck next time!\n'
+            typeWrite(text,1)
+            wait(1)    
 
 def walkAway():
     global gameOver
@@ -351,6 +365,8 @@ def askAndCheckAnswer():
                         typeWrite(text,1)
                         wait(.5)
                         checkIfHighScore()
+                        gameOver = True
+                        wait(1)
                 else:
                     text = 'incorrect!'
                     if currentRound >= 5 and currentRound < 10:
@@ -563,7 +579,7 @@ def playGame():
     currentRound = 0
     gameOver = False
     currentEarnings = 0
-    while currentRound <= 15 and gameOver == False:
+    while currentRound < 15 and gameOver == False:
         currentRound += 1
         roundDifficulty = setRoundDifficulty(currentRound)
         roundPrize = setRoundPrize(currentRound)
