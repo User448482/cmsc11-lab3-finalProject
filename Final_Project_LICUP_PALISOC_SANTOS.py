@@ -239,7 +239,7 @@ def setContent():
         questionContent = str(contentCursor.execute('SELECT questionContent FROM Average WHERE questionID = (?)', (questionID,)).fetchall()[0][0])
         correctAnswer = str(contentCursor.execute('SELECT correctAnswer FROM Average WHERE questionID = (?)', (questionID,)).fetchall()[0][0])
         choicesList = list(contentCursor.execute('SELECT choice1, choice2, choice3, choice4 FROM Average WHERE questionID = (?)', (questionID,)).fetchall()[0])
-    if roundDifficulty == 'Difficult':
+    if roundDifficulty == 'difficult':
         questionContent = str(contentCursor.execute('SELECT questionContent FROM Difficult WHERE questionID = (?)', (questionID,)).fetchall()[0][0])
         correctAnswer = str(contentCursor.execute('SELECT correctAnswer FROM Difficult WHERE questionID = (?)', (questionID,)).fetchall()[0][0])
         choicesList = list(contentCursor.execute('SELECT choice1, choice2, choice3, choice4 FROM Difficult WHERE questionID = (?)', (questionID,)).fetchall()[0])
