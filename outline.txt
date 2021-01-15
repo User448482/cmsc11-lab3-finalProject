@@ -1,0 +1,38 @@
+Initialization
+
+1. questions and choices are stored in content.db file
+2. error message if content.db is not found
+
+Main Menu
+
+if invalid input
+- quit game
+- view high scores
+    - if no high scores
+    - if there are high scores
+- play game
+    - if invalid name
+    - if returning player, display previous score
+    - if new player
+
+Play Game
+
+- player cannot walk away at round 1 where earnings == 0
+- if invalid input
+- answer the question
+    - correct answer
+    - incorrect answer
+- use a lifeline
+    - if invalid input
+    - ui updates
+    - call a friend (3 types)
+    - fifty-fifty
+- walk away with current earnings
+    - if high score
+    - if not high score
+- confirmation at average and difficult rounds
+    - if invalid input
+- no lifelines at final round
+- play again?
+
+
